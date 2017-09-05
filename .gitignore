@@ -1,0 +1,6 @@
+/my_data
+*.nrrd
+*.mat
+*.tiff
+*.tif
+*.dat
