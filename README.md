@@ -11,4 +11,6 @@ It is developed for my own needs so for now there won't be a HELP file but hopef
 
 ## Licence & copyright
 
- © Athanasios Ktistakis
+ © Athanasios Ktistakis 
+ 
+ Licensed under the [MIT License](LICENSE). 
