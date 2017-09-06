@@ -24,6 +24,8 @@ function varargout = my_gui_multiple(varargin)
 
 % Last Modified by GUIDE v2.5 01-Sep-2017 16:07:42
 
+% Copyright 2017 Athanasios Ktistakis
+
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
