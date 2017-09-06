@@ -454,10 +454,9 @@ handles = guidata(hObject);
 % fix this 
 % mynewseg = handles.mySegmentedImage;
 myImage = handles.myImage;
-mynewsegbin = myImage>0.01;
-mynewseg = mynewsegbin .* mat2gray(handles.originalImage);
-figure;
-imshow(mynewseg,[]);
+mynewseg = myImage>0.01
+
+
 %convert the final segment to binary and multiply it with the original
 %image for keeping the speckle information
 

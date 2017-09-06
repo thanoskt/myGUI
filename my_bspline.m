@@ -1,4 +1,4 @@
-function [P] = my_bspline(n,CP,myimage,hObject,handles)
+function [P] = my_bspline(n,CP,hObject,handles)
 % Get control points of uniform B-spline interactively.
 % The user is shown a figure window in which to choose B-spline control
 % points. As points are placed in the axes, the B-spline of specified order
@@ -25,6 +25,8 @@ function [P] = my_bspline(n,CP,myimage,hObject,handles)
 
     % axes for drawing
     ax = axes('Parent', fig);
+    
+    original_image = handles.originalImage;
     
 %    uicontrol('Style', 'text',...
 %    'String', 'Space - New Spline',... %replace something with the text you want
@@ -129,7 +131,7 @@ function [P] = my_bspline(n,CP,myimage,hObject,handles)
         hold on 
         % showing the original slice on the back using AlphaData for
         % setting the transparency 
-        h = imshow(myimage,'InitialMag', 'fit');
+        h = imshow(original_image,'InitialMag', 'fit');
         set(h, 'AlphaData', 0.7, 'AlphaDataMapping','none');
         
         set(fig, 'WindowButtonDownFcn', @bspline_gui_onmousedown);
@@ -215,7 +217,7 @@ function [P] = my_bspline(n,CP,myimage,hObject,handles)
            
            Contour2D = X(1:2,:);
            size(Contour2D)
-           size(myimage)
+           size(original_image)
            Contnew = zeros(length(Contour2D),2);
            Contnew(:,1) = Contour2D(1,:);
            Contnew(:,2) = Contour2D(2,:);
@@ -224,7 +226,8 @@ function [P] = my_bspline(n,CP,myimage,hObject,handles)
            Cnt(:,1) = Contnew(:,2);
            Cnt(:,2) = Contnew(:,1);
 
-           segmented_area=DrawSegmentedArea2D(Cnt,size(myimage));
+           
+           segmented_area=DrawSegmentedArea2D(Cnt,size(original_image));
            size(segmented_area)
            
 %            %flip image 
@@ -232,13 +235,15 @@ function [P] = my_bspline(n,CP,myimage,hObject,handles)
 %            size(justanimage)
 %            size(myimage)
 
+           currentImage = handles.myImage;
+
            typeofsnakeObj = get(handles.pnlsnaketype,'SelectedObject');
-           choice = get(typeofsnakeObj,'String')
+           choice = get(typeofsnakeObj,'String');
            switch choice
                 case 'Shrinking'
-                    mynewseg = segmented_area.*myimage;
+                    mynewseg = segmented_area.*currentImage;
                 case 'Expansion'
-                    mynewseg = (~segmented_area).*myimage;
+                    mynewseg = (~segmented_area).*currentImage;
            end
 %             figure; imshow(justanimage)
 
@@ -246,7 +251,9 @@ function [P] = my_bspline(n,CP,myimage,hObject,handles)
            axes(handles.axes1)
            imshow(mynewseg)
            disp('saving segmented image')
-           handles.mySegmentedImage = mynewseg;
+           handles.mySegmentedImage  = mynewseg;
+
+%            handles.mySegmentedImage = mynewseg;
            guidata(hObject, handles);
 
         end
