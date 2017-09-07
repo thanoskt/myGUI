@@ -1,4 +1,4 @@
-function P = edit_new_bspline(n,CP,hObject,handles)
+function [mynewseg, P] = edit_new_bspline(n,CP,hObject,handles)
 % Get control points of uniform B-spline interactively.
 % The user is shown a figure window in which to choose B-spline control
 % points. As points are placed in the axes, the B-spline of specified order
@@ -184,8 +184,8 @@ function P = edit_new_bspline(n,CP,hObject,handles)
            Cnt(:,1) = Contnew(:,2);
            Cnt(:,2) = Contnew(:,1);
 
-           justanimage=DrawSegmentedArea2D(Cnt,size(original_image));
-           size(justanimage)
+           segmented_area=DrawSegmentedArea2D(Cnt,size(original_image));
+           size(segmented_area)
            
            currentImage = handles.myImage;
            
@@ -209,7 +209,7 @@ function P = edit_new_bspline(n,CP,hObject,handles)
            axes(handles.axes1)
            imshow(mynewseg)
            disp('saving segmented image')
-           handles.mySegmentedImage  = mynewseg;
+%            handles.mySegmentedImage  = mynewseg;
 
 %            handles.mySegmentedImage = mynewseg;
            guidata(hObject, handles);

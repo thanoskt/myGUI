@@ -22,7 +22,7 @@ function varargout = my_gui_multiple(varargin)
 
 % Edit the above text to modify the response to help my_gui_multiple
 
-% Last Modified by GUIDE v2.5 06-Sep-2017 14:32:56
+% Last Modified by GUIDE v2.5 07-Sep-2017 17:41:29
 
 % Copyright 2017 Athanasios Ktistakis
 
@@ -251,6 +251,8 @@ guidata(hObject,handles);
 function start_Callback(hObject, eventdata, handles)
 handles = guidata(hObject);
 im = handles.myImage;
+disp('inside the segmentation function');
+
 segmentation_type = handles.segmentation_type;
 
 if strcmp(segmentation_type,'snakes')
@@ -349,7 +351,7 @@ if strcmp(segmentation_type,'snakes')
             segmented_im2 = (~Jexp).*mat2gray(im);
             segmented_image = segmented_im2;
             axes(handles.axes1) 
-            imshow(segmented_image)        
+            imshow(segmented_image,[])        
         end      
     else
         msgbox('Please first define the ROI')
@@ -443,41 +445,6 @@ handles.segmentation_type = 'snakes';
 guidata(hObject, handles);
 
 
-% --- Save the segmeented image
-function save_segmented_Callback(hObject, eventdata, handles)
-global no_slice
-handles = guidata(hObject);
-
-% axes(handles.axes1)
-% newsegment = getframe();
-% mynewseg = newsegment.cdata
-% fix this 
-% mynewseg = handles.mySegmentedImage;
-myImage = handles.myImage;
-mynewsegbin = myImage>0.01;
-mynewseg = mynewsegbin .* mat2gray(handles.originalImage);
-figure;
-imshow(mynewseg,[]);
-%convert the final segment to binary and multiply it with the original
-%image for keeping the speckle information
-
- try
-    prompt = {'Enter name for .mat file'};
-    dlg_title = 'Input';
-    num_lines = 1;
-    
-    segmname = sprintf('my_segment_%d',no_slice);
-    defaultans = {segmname};
-    answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
-    name = answer{1};
-    fname=sprintf('%s.mat',name);
-    save(fname,'mynewseg');
- catch
-    msgbox('Error while saving the segmented image')
-   warning('Make sure the segmentation process is complete');
-   volume = 0;
-end
-
 % --- Set the new slice
 function slice_no_value_Callback(hObject, eventdata, handles)
     
@@ -545,6 +512,9 @@ try
     %will be later used to save the segmented image 
     load masked_volume
     handles.originalImage = masked_volume(:,:,no_slice);
+    guidata(hObject,handles);
+
+
 catch
      warning('Failed to load the original volume. In case you are not working with 4D ultrasound data you can comment these lines.');
      handles.originalImage = im;
@@ -559,18 +529,22 @@ end
 
     if (size(inCurve,2)>40)
         disp('first bspline')
-        new_curve = my_bspline(4,inCurve,hObject,handles);
-        handles.myCurve = new_curve;
-        guidata(hObject,handles);
+        [new_segm, new_curve] = my_bspline(4,inCurve,hObject,handles);
+        
 
     else
                 disp('second bspline')
 
-        new_curve = edit_new_bspline(4,inCurve,hObject,handles);
-        handles.myCurve = new_curve;
+        [new_segm, new_curve] = edit_new_bspline(4,inCurve,hObject,handles);
+%         handles.myCurve = new_curve;
     end
     %mySegmentedImage
+    handles.myCurve = new_curve;
+    handles.mySegmentedImage = new_segm;
     guidata(hObject, handles);
+    
+
+    figure; imshow(new_segm)
 %% end    
 
 
@@ -617,7 +591,7 @@ Curve = handles.myCurve;
     disp('Saving the new curve')
     save(fname,'Curve');
 catch
-    msgbox('Error while saving the segmented image')
+   msgbox('Error while saving the segmented image')
    warning('Make sure the segmentation process is complete');
    volume = 0;
  end
@@ -637,13 +611,59 @@ end
 function go_backButton_Callback(hObject, eventdata, handles)    
     imshow( handles.myImage,[])
 
+    
+    
 % --- Apply segmentation to the current image
-function accept_segmButton_Callback(hObject, eventdata, handles)
+function apply_segmButton_Callback(hObject, eventdata, handles)
     handles = guidata(hObject);
-
-    handles.myImage = handles.mySegmentedImage;
+    
+    new_image =  handles.mySegmentedImage;
+%     figure; 
+%     imshow(new_image)
+    handles.myImage = new_image;
     
     guidata(hObject, handles);
+    disp('Changes have been applied')
+
+    
+    
+    
+% --- Save the segmeented image
+function save_segmented_Callback(hObject, eventdata, handles)
+global no_slice
+handles = guidata(hObject);
+
+% axes(handles.axes1)
+% newsegment = getframe();
+% mynewseg = newsegment.cdata
+% fix this 
+% mynewseg = handles.mySegmentedImage;
+myImage = handles.myImage;
+mynewsegbin = myImage>0.01;
+mynewseg = mynewsegbin .* mat2gray(handles.originalImage);
+
+figure;
+imshow(mynewseg)
+
+%convert the final segment to binary and multiply it with the original
+%image for keeping the speckle information
+
+ try
+    prompt = {'Enter name for .mat file'};
+    dlg_title = 'Input';
+    num_lines = 1;
+    
+    segmname = sprintf('my_segment_%d',no_slice);
+    defaultans = {segmname};
+    answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
+    name = answer{1};
+    fname=sprintf('%s.mat',name);
+    save(fname,'mynewseg');
+ catch
+    msgbox('Error while saving the segmented image')
+   warning('Make sure the segmentation process is complete');
+   volume = 0;
+end
 
 %--- Default values for the Snakes Segmentation
 function default(hObject, handles)
@@ -726,18 +746,18 @@ function default(hObject, handles)
     
     
  %% SMALL SCRIPT FOR SAVING 
-% % % %     
-% % % %     for i = 7:52
-% % % %     try
-% % % %         segmname = sprintf('my_segment_%d',i);
-% % % %         fname=sprintf('%s.mat',segmname);
-% % % %         load(fname);
-% % % %         segmented_volume(:,:,i) = mynewseg;
-% % % %     catch
-% % % %         disp('no change for : ')
-% % % %         i
-% % % %     end
-% % % % end
+%     
+%     for i = 7:52
+%     try
+%         segmname = sprintf('my_segment_%d',i);
+%         fname=sprintf('%s.mat',segmname);
+%         load(fname);
+%         segmented_volume(:,:,i) = mynewseg;
+%     catch
+%         disp('no change for : ')
+%         i
+%     end
+% end
 
 
     
@@ -1091,7 +1111,4 @@ function pnlsnaketype_SelectionChangeFcn(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function thres_txt_CreateFcn(hObject, eventdata, handles)
-
-
-
 

@@ -1,4 +1,4 @@
-function [P] = my_bspline(n,CP,hObject,handles)
+function [mynewseg, P] = my_bspline(n,CP,hObject,handles)
 % Get control points of uniform B-spline interactively.
 % The user is shown a figure window in which to choose B-spline control
 % points. As points are placed in the axes, the B-spline of specified order
@@ -17,6 +17,8 @@ function [P] = my_bspline(n,CP,hObject,handles)
 % Copyright 2017 Athanasios Ktistakis
 % Edited and modified..
 
+    
+
     %Using cubic splines as a default
     n=4;
     fig = figure( ...
@@ -25,6 +27,7 @@ function [P] = my_bspline(n,CP,hObject,handles)
 
     % axes for drawing
     ax = axes('Parent', fig);
+    handles = guidata(hObject);
     
     original_image = handles.originalImage;
     
@@ -60,7 +63,6 @@ function [P] = my_bspline(n,CP,hObject,handles)
         'Color', 'b', ...
         'Marker', 'o');
     
-    handles = guidata(hObject);
 % %     tryimim = handles.myImage;
 % %     figure; 
 % %     imshow(tryimim);
@@ -228,14 +230,15 @@ function [P] = my_bspline(n,CP,hObject,handles)
 
            
            segmented_area=DrawSegmentedArea2D(Cnt,size(original_image));
-           size(segmented_area)
+%            size(segmented_area)
            
 %            %flip image 
 %            trjustanimage = justanimage.';
 %            size(justanimage)
 %            size(myimage)
+            
 
-           currentImage = handles.myImage;
+           currentImage = mat2gray(handles.myImage);
 
            typeofsnakeObj = get(handles.pnlsnaketype,'SelectedObject');
            choice = get(typeofsnakeObj,'String');
@@ -250,11 +253,14 @@ function [P] = my_bspline(n,CP,hObject,handles)
            %show that to the main gui window
            axes(handles.axes1)
            imshow(mynewseg)
-           disp('saving segmented image')
-           handles.mySegmentedImage  = mynewseg;
+%            disp('saving segmented image')
 
 %            handles.mySegmentedImage = mynewseg;
+           
            guidata(hObject, handles);
+           
+%           figure; imshow(mynewseg)
+
 
         end
     end
