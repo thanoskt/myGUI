@@ -22,7 +22,7 @@ function varargout = my_gui_multiple(varargin)
 
 % Edit the above text to modify the response to help my_gui_multiple
 
-% Last Modified by GUIDE v2.5 07-Sep-2017 17:41:29
+% Last Modified by GUIDE v2.5 15-Sep-2017 11:36:20
 
 % Copyright 2017 Athanasios Ktistakis
 
@@ -54,6 +54,8 @@ function my_gui_multiple_OpeningFcn(hObject, eventdata, handles, varargin)
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to my_gui_multiple (see VARARGIN)
 clc
+global no_slice 
+no_slice = 0;
 % Choose default command line output for my_gui_multiple
 handles.output = hObject;
 
@@ -87,9 +89,9 @@ close all
 function pushbutton8_Callback(hObject, eventdata, handles)
 % Retrieve GUI data (the handles structure)
 handles = guidata(hObject);
-global im2
+global im2 type_of_loading
 display('Loading image..');
-
+type_of_loading = 'image';
 try
     [FileName,PathName] = uigetfile('*.*','Select the MATLAB code file')
     [pathstr,name,ext] = fileparts(FileName)
@@ -99,12 +101,15 @@ try
             Load = load(FileName);
             im = getfield(Load,char(fieldnames(Load)));                
             im2 = im;
-            imshow(im) 
+            imshow(im,[]) 
         else
-            im = imread(FileName);
+            disp('else case')
+            im = imread(fullfile(PathName,FileName));
             im2 = im; %we will use it for restore
-            imshow(im) 
+            imshow(im,[]) 
         end
+        handles.myImage = im;
+
     catch
        msgbox('Wrong type of file')
        warning('Problem using function.  Assigning a value of 0.');
@@ -118,10 +123,11 @@ end
 
             %% Load Volume %%
 function pushbutton9_Callback(hObject, eventdata, handles)
-    global im2 no_slice 
+    global im2 no_slice type_of_loading
     handles.originalVolume = 0;
     handles = guidata(hObject);
     display('Loading Volume..');
+    type_of_loading = 'volume';
     try
         %use this to load the image from a volume
         [FileName,PathName] = uigetfile('*.*','Select the MATLAB code file');
@@ -243,7 +249,7 @@ function pushbutton10_Callback(hObject, eventdata, handles)
 global im2
 handles = guidata(hObject);
 handles.myImage = im2;
-imshow(im2)
+imshow(im2,[])
 guidata(hObject,handles);
 
 
@@ -256,7 +262,7 @@ disp('inside the segmentation function');
 segmentation_type = handles.segmentation_type;
 
 if strcmp(segmentation_type,'snakes')
-    disp('performing segmentation using classic Snakes algorithm')
+    disp('Performing segmentation using classic Snakes algorithm')
     typeofsnakeObj = get(handles.pnlsnaketype,'SelectedObject');
     choice = get(typeofsnakeObj,'String');
     %check if GVF option is enabled
@@ -285,12 +291,12 @@ if strcmp(segmentation_type,'snakes')
 
             switch GVF_choice
                 case 'On'      
-                    disp('GVF is enabled')
-                    Options.GIterations = str2num(get(handles.gvf_iterat_val,'String'))
-                    Options.Sigma3 = str2num(get(handles.sigma3_val,'String'))
-                    Options.Mu = str2num(get(handles.mu_val,'String'))
+%                     disp('GVF is enabled')
+                    Options.GIterations = str2num(get(handles.gvf_iterat_val,'String'));
+                    Options.Sigma3 = str2num(get(handles.sigma3_val,'String'));
+                    Options.Mu = str2num(get(handles.mu_val,'String'));
                 case 'Off'     
-                    disp('GVF is not enabled')
+%                     disp('GVF is not enabled')
             end
 
         case 'Expansion'
@@ -328,10 +334,10 @@ if strcmp(segmentation_type,'snakes')
             % fix that! error when segmented high res heart image
             % should check first the type of image and then multiply
             % accordingly..
-            disp('class of Jhsr')
-            class(Jshr)
-            disp('class of im')
-            class(im)
+%             disp('class of Jhsr')
+%             class(Jshr)
+%             disp('class of im')
+%             class(im)
             
             segmented_im = Jshr.*mat2gray(im);
             segmented_image = segmented_im;
@@ -368,7 +374,7 @@ elseif strcmp(segmentation_type,'chanvese')
     
     usermask = handles.position;  % under construction (?)
     segmented_image = chenvese(im,chan_mask,chan_iter,chan_mu,chan_method,usermask);
-    disp('performing segmentation using Chan and Vese algorithm')
+    disp('Performing segmentation using Chan and Vese algorithm')
 end
 
 %check this %
@@ -458,6 +464,8 @@ im = squeeze(original_volume(:,:,no_slice));
 handles.myImage = im;
 im2 = im; 
 imshow(im,[])
+default(hObject, handles)
+
 guidata(hObject, handles);
 
 % --- 2nd Restore button
@@ -473,7 +481,9 @@ guidata(hObject, handles);
 
 % --- Rescale the high resolution image
 function pushbutton21_Callback(hObject, eventdata, handles)
+    
 handles = guidata(hObject);
+im = handles.myImage;
 prompt = {'Enter scale:'};
                 dlg_title = 'Scale';
                 num_lines = 1;
@@ -486,14 +496,14 @@ if s<1
    im = imresize(im,s);
 end
 handles.myImage = im;
-iguidata(hObject, handles);
-mshow(im,[]);
+guidata(hObject, handles);
+imshow(im,[]);
 
 
 
 %%--- Edit the Spline 
 function pushbutton22_Callback(hObject, eventdata, handles)
-global no_slice firsttime
+global no_slice type_of_loading
 % global im
 handles = guidata(hObject);
 im = handles.myImage;
@@ -506,19 +516,31 @@ if size(Curve,1) > 2
 else
     inCurve = Curve;
 end
+% if (type_of_loading == 'volume')
+if strcmp(type_of_loading,'volume')
+    try
+        disp('Loading the masked volume')
+        load masked_volume
+ 
+        handles.originalImage = masked_volume(:,:,no_slice);
+       
 
-try
-    %loading the masked_volume which contains the unfiltered image that
-    %will be later used to save the segmented image 
-    load masked_volume
-    handles.originalImage = masked_volume(:,:,no_slice);
-    guidata(hObject,handles);
-
-
-catch
+     catch
      warning('Failed to load the original volume. In case you are not working with 4D ultrasound data you can comment these lines.');
      handles.originalImage = im;
+    end
+% elseif (type_of_loading == 'image')
+elseif strcmp(type_of_loading,'image')
+
+     try
+        handles.originalImage = im;
+     catch
+     warning('Failed to load the original image.');
+    end
+else
+    disp('Error...')
 end
+guidata(hObject, handles);
 % if length(new_curve) > 100
 %     disp('not ?')
 %     length(new_curve)
@@ -544,10 +566,10 @@ end
     guidata(hObject, handles);
     
 
-    figure; imshow(new_segm)
+    figure; imshow(new_segm,[])
 %% end    
 
-
+%%--- Load the Spline 
 function load_curve_button_Callback(hObject, eventdata, handles)
 handles = guidata(hObject);
  try
@@ -571,6 +593,38 @@ catch
  end
 guidata(hObject, handles);
 
+% --- Quick Load
+% Loads the template curve from the same slice 
+function quick_load_button_Callback(hObject, eventdata, handles)
+global no_slice 
+handles = guidata(hObject);
+
+typeofsnakeObj = get(handles.pnlsnaketype,'SelectedObject');
+choice = get(typeofsnakeObj,'String');
+
+ try
+    switch choice
+        case 'Shrinking'
+            disp('Loading Curve..')
+            curvename = sprintf('new_curve%d',no_slice)
+            Load = load(curvename);
+            my_curve = getfield(Load,char(fieldnames(Load)));
+            handles.myCurve = my_curve;
+        case 'Expansion'
+            disp('Loading Curve..')
+            curvename = sprintf('new_curve_in%d',no_slice)
+            Load = load(curvename);
+            my_curve = getfield(Load,char(fieldnames(Load)));
+            handles.myCurve = my_curve;
+    end
+catch
+    warning('Curve Loading - Failed');
+ end
+guidata(hObject, handles);
+
+
+    
+
 
 %-- Saving the Curve
 function pushbutton25_Callback(hObject, eventdata, handles)
@@ -583,7 +637,7 @@ Curve = handles.myCurve;
     num_lines = 1;
 
     % save('myCurve.mat','myCurve');
-    curvename = sprintf('new_curve%d',no_slice);
+    curvename = sprintf('new_curve28_%d',no_slice);
     defaultans = {curvename};
     answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
     name = answer{1};
@@ -643,7 +697,7 @@ mynewsegbin = myImage>0.01;
 mynewseg = mynewsegbin .* mat2gray(handles.originalImage);
 
 figure;
-imshow(mynewseg)
+imshow(mynewseg,[])
 
 %convert the final segment to binary and multiply it with the original
 %image for keeping the speckle information
@@ -653,7 +707,7 @@ imshow(mynewseg)
     dlg_title = 'Input';
     num_lines = 1;
     
-    segmname = sprintf('my_segment_%d',no_slice);
+    segmname = sprintf('my_segment28_%d',no_slice);
     defaultans = {segmname};
     answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
     name = answer{1};
@@ -667,9 +721,11 @@ end
 
 %--- Default values for the Snakes Segmentation
 function default(hObject, handles)
+    handles = guidata(hObject);
+
     global no_slice
 
-    
+    no_slice
     set(handles.iterat_num_val, 'string', '350');
     set(handles.nPoints_val, 'string', '200');
     
@@ -683,48 +739,62 @@ function default(hObject, handles)
     set(handles.SSigma1_val, 'string', '3');
     set(handles.SSigma2_val, 'string', '0.4');
     
-%     if no_slice <= 6
-%         set(handles.SAlpha_val, 'string', '0.5');
-%         set(handles.SWedge_val, 'string', '70.5');
-%         set(handles.SWline_val, 'string', '5');
-%         set(handles.SSigma1_val, 'string', '3');
-%     elseif no_slice >6 && no_slice<=13
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%         
-%     elseif no_slice >13 && no_slice<=13
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%     elseif no_slice >=15 && no_slice<10
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%     elseif no_slice > 20 && no_slice<10
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%     elseif no_slice > 27 && no_slice<10
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%         
-%     elseif no_slice > 27 && no_slice<10
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%         set(handles.SAlpha_val, 'string', '1');
-%     end
+    if no_slice <= 6
+        set(handles.SAlpha_val, 'string', '0.5');
+        set(handles.SWedge_val, 'string', '70.5');
+        set(handles.SWline_val, 'string', '5');
+        set(handles.SSigma1_val, 'string', '3');
+        set(handles.SSigma2_val, 'string', '0.4');
+    elseif no_slice >6 && no_slice<=13
+        set(handles.SAlpha_val, 'string', '0.3');
+        set(handles.SBeta_val, 'string', '0.1');
+        set(handles.SWedge_val, 'string', '40.5');
+        set(handles.SWline_val, 'string', '3');
+        set(handles.SSigma1_val, 'string', '3');
+        set(handles.SSigma2_val, 'string', '0.35');
+        
+    elseif no_slice >13 && no_slice<=15
+        set(handles.SAlpha_val, 'string', '0.3');
+        set(handles.SBeta_val, 'string', '0.1');
+        set(handles.SWedge_val, 'string', '70.5');
+        set(handles.SWline_val, 'string', '3');
+        set(handles.SSigma1_val, 'string', '3');
+        set(handles.SSigma2_val, 'string', '0.35');
+        
+    elseif no_slice >=15 && no_slice<20
+        set(handles.SAlpha_val, 'string', '0.9');
+        set(handles.SWedge_val, 'string', '40.5');
+        set(handles.SWline_val, 'string', '3');
+        set(handles.SSigma1_val, 'string', '3');
+        set(handles.SSigma2_val, 'string', '0.35');
+        
+    elseif no_slice > 20 && no_slice<=27
+        set(handles.SAlpha_val, 'string', '1');
+        set(handles.SWedge_val, 'string', '70.5');
+        set(handles.SWline_val, 'string', '2');
+        set(handles.SSigma1_val, 'string', '3');
+        set(handles.SSigma2_val, 'string', '0.35');
+        
+    elseif no_slice > 27 && no_slice<=31
+        set(handles.SAlpha_val, 'string', '0.9');
+        set(handles.SWedge_val, 'string', '100.5');
+        set(handles.SWline_val, 'string', '7');
+        set(handles.SSigma1_val, 'string', '4');
+        set(handles.SSigma2_val, 'string', '0.35');
+        
+    elseif no_slice > 31 && no_slice<35
+        set(handles.SAlpha_val, 'string', '0.9');
+        set(handles.SWedge_val, 'string', '100.5');
+        set(handles.SWline_val, 'string', '10');
+        set(handles.SSigma1_val, 'string', '3');
+        set(handles.SSigma2_val, 'string', '0.4');
+    elseif no_slice > 35 
+        set(handles.SAlpha_val, 'string', '0.9');
+        set(handles.SWedge_val, 'string', '100.5');
+        set(handles.SWline_val, 'string', '10');
+        set(handles.SSigma1_val, 'string', '2');
+        set(handles.SSigma2_val, 'string', '0.4');
+    end
     
 
     set(handles.EAlpha_val, 'string', '1.4');
@@ -747,7 +817,7 @@ function default(hObject, handles)
     
  %% SMALL SCRIPT FOR SAVING 
 %     
-%     for i = 7:52
+%     for i = 1:52
 %     try
 %         segmname = sprintf('my_segment_%d',i);
 %         fname=sprintf('%s.mat',segmname);
@@ -1111,4 +1181,7 @@ function pnlsnaketype_SelectionChangeFcn(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function thres_txt_CreateFcn(hObject, eventdata, handles)
+
+
+
 

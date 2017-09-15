@@ -154,11 +154,15 @@ function [mynewseg, P] = edit_new_bspline(n,CP,hObject,handles)
        
         if strcmpi(keyPressed,'return')
             disp('return button');
-            x(:,newPointSize+1) = x(:,1);
+                      
+            
+            %connecting the end with the beginning
+
+%             x(:,newPointSize+1) = x(:,1);
 %             x(:,newPointSize+2) = x(:,2);
 %             x(:,newPointSize+3) = x(:,3);
 
-            y(:,newPointSize+1) = y(:,1);
+%             y(:,newPointSize+1) = y(:,1);
 %             y(:,newPointSize+2) = y(:,2);
 %             y(:,newPointSize+3) = y(:,3);
 
@@ -187,7 +191,7 @@ function [mynewseg, P] = edit_new_bspline(n,CP,hObject,handles)
            segmented_area=DrawSegmentedArea2D(Cnt,size(original_image));
            size(segmented_area)
            
-           currentImage = handles.myImage;
+           currentImage = mat2gray(handles.myImage);
            
            typeofsnakeObj = get(handles.pnlsnaketype,'SelectedObject');
            choice = get(typeofsnakeObj,'String')
@@ -210,6 +214,8 @@ function [mynewseg, P] = edit_new_bspline(n,CP,hObject,handles)
            imshow(mynewseg)
            disp('saving segmented image')
 %            handles.mySegmentedImage  = mynewseg;
+            existingFig = findobj('Name', 'Interactive uniform B-spline');
+            close(existingFig);
 
 %            handles.mySegmentedImage = mynewseg;
            guidata(hObject, handles);
