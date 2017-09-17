@@ -606,13 +606,13 @@ choice = get(typeofsnakeObj,'String');
     switch choice
         case 'Shrinking'
             disp('Loading Curve..')
-            curvename = sprintf('new_curve%d',no_slice)
+            curvename = sprintf('new_curve_%d',no_slice)
             Load = load(curvename);
             my_curve = getfield(Load,char(fieldnames(Load)));
             handles.myCurve = my_curve;
         case 'Expansion'
             disp('Loading Curve..')
-            curvename = sprintf('new_curve_in%d',no_slice)
+            curvename = sprintf('new_curve_in_%d',no_slice)
             Load = load(curvename);
             my_curve = getfield(Load,char(fieldnames(Load)));
             handles.myCurve = my_curve;
@@ -622,8 +622,7 @@ catch
  end
 guidata(hObject, handles);
 
-
-    
+   
 
 
 %-- Saving the Curve
