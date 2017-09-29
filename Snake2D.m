@@ -77,23 +77,6 @@ function [P,J]=Snake2D(I,P,Options)
 %   figure, imshow(Irgb,[]); 
 %   hold on; plot([O(:,2);O(1,2)],[O(:,1);O(1,1)]);
 
-% 
-%     %% mine
-%     A = imread('frame_xy_Dataset02.jpg');
-%     %try different types
-%     I = mat2gray(A);
-%     %figure, imshow(I); [y,x] = getpts;
-%     x1 = [50 50 50 30 7 4 8 25] ;
-%     y1 = [26 47 68 70 70 47 24 24];
-% 
-% % %%%%%%%% ventricle %%%%%%%%
-% %     y = [44 45 49 49 41];
-% %     x = [35 38 36 29 30];
-% 
-% %%%%%%% atrium %%%%%%%
-%     y = [47 53 54 54 51];
-%     x = [17 19 19 13 13];
-% 
 %%%%%%%%%%%%%%%%%
 %     % Make an array with the clicked coordinates
 %     P=[x(:) y(:)];
@@ -109,8 +92,7 @@ function [P,J]=Snake2D(I,P,Options)
 %     Irgb(:,:,3)=J;
 %     figure, imshow(Irgb,[]); 
 %     hold on; plot([O(:,2);O(1,2)],[O(:,1);O(1,1)]);
-%     
-%     
+%      
 %     Options=struct;
 %     Options.Verbose=true;
 %     Options.Iterations=400;
@@ -153,6 +135,8 @@ function [P,J]=Snake2D(I,P,Options)
 %   [O,J]=Snake2D(I,P,Options);
 %   
 % Function is written by D.Kroon University of Twente (July 2010)
+% Edited and modified by Athanasios Ktistakis, MPI for Dynamics and Self
+% Organization (2017)
 
 % Process inputs
 % defaultoptions=struct('Verbose',false,'nPoints',100,'Wline',0.04,'Wedge',2,'Wterm',0.01,'Sigma1',10,'Sigma2',20,'Alpha',0.2,'Beta',0.2,'Delta',0.1,'Gamma',1,'Kappa',2,'Iterations',100,'GIterations',0,'Mu',0.2,'Sigma3',1);

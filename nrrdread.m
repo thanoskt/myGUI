@@ -72,19 +72,28 @@ end
 
 datatype = getDatatype(meta.type);
 
-% Get the size of the data.
+% % Get the size of the data.
+% assert(isfield(meta, 'sizes') && ...
+%        isfield(meta, 'dimension') && ...
+%        isfield(meta, 'encoding') && ...
+%        isfield(meta, 'endian'), ...
+%        'Missing required metadata fields.')
+
+% thanos edit
+% % Get the size of the data.
 assert(isfield(meta, 'sizes') && ...
        isfield(meta, 'dimension') && ...
-       isfield(meta, 'encoding') && ...
-       isfield(meta, 'endian'), ...
+       isfield(meta, 'encoding'), ...
        'Missing required metadata fields.')
+
 
 dims = sscanf(meta.sizes, '%d');
 ndims = sscanf(meta.dimension, '%d');
 assert(numel(dims) == ndims);
 
 data = readData(fid, meta, datatype);
-data = adjustEndian(data, meta);
+%thanos edit
+% data = adjustEndian(data, meta);
 
 % Reshape and get into MATLAB's order.
 X = reshape(data, dims');
