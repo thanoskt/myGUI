@@ -1,0 +1,11 @@
+NRRD0004
+type: uint8
+dimension: 3
+space: left-posterior-superior
+sizes: 70  75  33
+space directions: (1,0,0) (0,1,0) (0,0,1)
+kinds: domain domain domain
+encoding: raw
+endian: little
+space origin: (0,0,0)
+data file: testnrrdwrite2.raw

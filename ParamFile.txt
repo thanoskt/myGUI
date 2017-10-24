@@ -1,0 +1,13 @@
+VARIABLE: DESIRED_NAME
+1_Reshapex: 120
+2_Reshapey: 90
+3_Reshapez: 80
+4_Load_Unfiltered_Volume: masked_volume_18
+5_QuickLoad_Shirnking: new_curve_
+6_QuickLoad_Expansion_LeftVent: new_curve_in_
+7_Save_Curve_name: new_curve18_
+8_Save_Segnented_Image: my_segment18_
+9_Load_volume_for_3D_Binary: my_segment18
+10_Save_3D_Binary: bin_segmented_volume
+
+
